@@ -1,0 +1,57 @@
+<!-- index.html - Landing page -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row align-items-center py-5">
+    <div class="col-md-6">
+        <h1 class="display-4 fw-bold">Track Your Prescriptions with Ease</h1>
+        <p class="lead">Upload your prescription and track its progress from receipt to ready-for-pickup.</p>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('upload_prescription') }}" class="btn btn-primary btn-lg px-4 me-md-2">Upload Prescription</a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-lg px-4">View Dashboard</a>
+            {% else %}
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4 me-md-2">Get Started</a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-secondary btn-lg px-4">Login</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <img src="{{ url_for('static', filename='img/prescription-illustration.svg') }}" alt="Prescription Tracking" class="img-fluid" onerror="this.src='https://via.placeholder.com/600x400?text=Prescription+Tracking'">
+    </div>
+</div>
+
+<div class="row my-5 text-center">
+    <h2 class="mb-4">How It Works</h2>
+    
+    <div class="col-md-4">
+        <div class="card h-100 p-3">
+            <div class="text-center mb-3">
+                <i class="fas fa-upload fa-3x text-primary"></i>
+            </div>
+            <h4>Upload</h4>
+            <p>Take a photo of your prescription or upload a PDF and submit it securely to our system.</p>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100 p-3">
+            <div class="text-center mb-3">
+                <i class="fas fa-tasks fa-3x text-primary"></i>
+            </div>
+            <h4>Track</h4>
+            <p>Monitor your prescription status from receipt to verification, processing, and ready for pickup.</p>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100 p-3">
+            <div class="text-center mb-3">
+                <i class="fas fa-bell fa-3x text-primary"></i>
+            </div>
+            <h4>Notify</h4>
+            <p>Receive real-time notifications when your prescription status changes.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

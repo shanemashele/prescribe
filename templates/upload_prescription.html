@@ -1,0 +1,58 @@
+<!-- upload_prescription.html - Upload new prescription -->
+{% extends "base.html" %}
+
+{% block title %}Upload Prescription - MediTrack{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">Upload New Prescription</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="doctor_name" class="form-label">Doctor's Name</label>
+                        <input type="text" class="form-control" id="doctor_name" name="doctor_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="medication" class="form-label">Medication (if known)</label>
+                        <input type="text" class="form-control" id="medication" name="medication" placeholder="Leave blank if unsure">
+                    </div>
+                    <div class="mb-3">
+                        <label for="prescription" class="form-label">Prescription Image/PDF</label>
+                        <input type="file" class="form-control" id="prescription" name="prescription" accept=".jpg,.jpeg,.png,.pdf" required>
+                        <div class="form-text">Upload a clear photo or scan of your prescription (JPG, PNG, or PDF).</div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="terms" required>
+                            <label class="form-check-label" for="terms">
+                                I confirm this prescription is valid and issued to me or someone I'm authorized to pick up medication for.
+                            </label>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Upload Prescription</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h4 class="mb-0">Tips for Good Prescription Photos</h4>
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li>Ensure the prescription is on a flat surface with good lighting</li>
+                    <li>Make sure all text is clearly visible and in focus</li>
+                    <li>Include the entire prescription in the frame</li>
+                    <li>Include doctor's signature and any special instructions</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

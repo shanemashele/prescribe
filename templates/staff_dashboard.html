@@ -1,0 +1,309 @@
+<!-- staff_dashboard.html - Pharmacy staff dashboard -->
+{% extends "base.html" %}
+
+{% block title %}Staff Dashboard - MediTrack{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Pharmacy Staff Dashboard</h1>
+    <a href="{{ url_for('index') }}" class="btn btn-outline-danger">Exit Staff Portal</a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body text-center">
+                <h3>{{ prescriptions|selectattr('status', 'equalto', 'Received')|list|length }}</h3>
+                <p class="mb-0">New Prescriptions</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body text-center">
+                <h3>{{ prescriptions|selectattr('status', 'equalto', 'Verified')|list|length }}</h3>
+                <p class="mb-0">Verified</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body text-center">
+                <h3>{{ prescriptions|selectattr('status', 'equalto', 'Processing')|list|length }}</h3>
+                <p class="mb-0">Processing</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body text-center">
+                <h3>{{ prescriptions|selectattr('status', 'equalto', 'Ready')|list|length }}</h3>
+                <p class="mb-0">Ready for Pickup</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-tab active" id="new-tab" data-bs-toggle="tab" data-bs-target="#new" type="button" role="tab">
+            New Prescriptions
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-tab" id="verified-tab" data-bs-toggle="tab" data-bs-target="#verified" type="button" role="tab">
+            Verified
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-tab" id="processing-tab" data-bs-toggle="tab" data-bs-target="#processing" type="button" role="tab">
+            Processing
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-tab" id="ready-tab" data-bs-toggle="tab" data-bs-target="#ready" type="button" role="tab">
+            Ready for Pickup
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-tab" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button" role="tab">
+            Completed
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="myTabContent">
+    <!-- New Prescriptions -->
+    <div class="tab-pane fade show active" id="new" role="tabpanel">
+        {% set new_prescriptions = prescriptions|selectattr('status', 'equalto', 'Received')|list %}
+        {% if new_prescriptions %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Medication</th>
+                            <th>Doctor</th>
+                            <th>Date Received</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prescription in new_prescriptions %}
+                            <tr>
+                                <td>{{ prescription.patient.name }}</td>
+                                <td>{{ prescription.medication }}</td>
+                                <td>{{ prescription.doctor_name }}</td>
+                                <td>{{ prescription.upload_date.strftime('%b %d, %Y %I:%M %p') }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#prescriptionModal{{ prescription.id }}">
+                                        Process
+                                    </button>
+                                    
+                                    <!-- Modal for updating prescription -->
+                                    <div class="modal fade" id="prescriptionModal{{ prescription.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Process Prescription #{{ prescription.id }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <h6>Patient Information</h6>
+                                                            <p><strong>Name:</strong> {{ prescription.patient.name }}</p>
+                                                            <p><strong>Email:</strong> {{ prescription.patient.email }}</p>
+                                                            <p><strong>Phone:</strong> {{ prescription.patient.phone }}</p>
+                                                            
+                                                            <h6>Prescription Details</h6>
+                                                            <p><strong>Medication:</strong> {{ prescription.medication }}</p>
+                                                            <p><strong>Doctor:</strong> {{ prescription.doctor_name }}</p>
+                                                            <p><strong>Date Submitted:</strong> {{ prescription.upload_date.strftime('%b %d, %Y') }}</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <h6>Prescription Image</h6>
+                                                            {% if prescription.file_path.endswith('.pdf') %}
+                                                                <div class="alert alert-info">
+                                                                    <i class="fas fa-file-pdf"></i> PDF document uploaded
+                                                                </div>
+                                                            {% else %}
+                                                                <img src="{{ url_for('static', filename=prescription.file_path) }}" alt="Prescription Image" class="img-fluid border rounded">
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <hr>
+                                                    
+                                                    <form action="{{ url_for('update_status', prescription_id=prescription.id) }}" method="POST">
+                                                        <div class="mb-3">
+                                                            <label for="status" class="form-label">Update Status</label>
+                                                            <select class="form-select" id="status" name="status" required>
+                                                                <option value="">Select status...</option>
+                                                                <option value="Verified">Verified</option>
+                                                                <option value="Processing">Processing</option>
+                                                                <option value="Ready">Ready for Pickup</option>
+                                                                <option value="Completed">Completed</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="notes" class="form-label">Notes to Patient</label>
+                                                            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                                                        </div>
+                                                        <div class="text-end">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-primary">Update Status</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No new prescriptions at this time.
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Verified Prescriptions -->
+    <div class="tab-pane fade" id="verified" role="tabpanel">
+        {% set verified_prescriptions = prescriptions|selectattr('status', 'equalto', 'Verified')|list %}
+        {% if verified_prescriptions %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Medication</th>
+                            <th>Doctor</th>
+                            <th>Date Received</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prescription in verified_prescriptions %}
+                            <tr>
+                                <td>{{ prescription.patient.name }}</td>
+                                <td>{{ prescription.medication }}</td>
+                                <td>{{ prescription.doctor_name }}</td>
+                                <td>{{ prescription.upload_date.strftime('%b %d, %Y %I:%M %p') }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#prescriptionModal{{ prescription.id }}">
+                                        Update
+                                    </button>
+                                    
+                                    <!-- Modal for updating prescription (same structure as above) -->
+                                    <div class="modal fade" id="prescriptionModal{{ prescription.id }}" tabindex="-1" aria-hidden="true">
+                                        <!-- Same modal content as above, just with pre-selected status -->
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Update Prescription #{{ prescription.id }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <!-- Same content as the modal above -->
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <h6>Patient Information</h6>
+                                                            <p><strong>Name:</strong> {{ prescription.patient.name }}</p>
+                                                            <p><strong>Email:</strong> {{ prescription.patient.email }}</p>
+                                                            <p><strong>Phone:</strong> {{ prescription.patient.phone }}</p>
+                                                            
+                                                            <h6>Prescription Details</h6>
+                                                            <p><strong>Medication:</strong> {{ prescription.medication }}</p>
+                                                            <p><strong>Doctor:</strong> {{ prescription.doctor_name }}</p>
+                                                            <p><strong>Date Submitted:</strong> {{ prescription.upload_date.strftime('%b %d, %Y') }}</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <h6>Prescription Image</h6>
+                                                            {% if prescription.file_path.endswith('.pdf') %}
+                                                                <div class="alert alert-info">
+                                                                    <i class="fas fa-file-pdf"></i> PDF document uploaded
+                                                                </div>
+                                                                {% else %}
+                                                                <img src="{{ url_for('static', filename=prescription.file_path) }}" alt="Prescription Image">
+                                                                {% endif %}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <hr>
+                                                    
+                                                    <form action="{{ url_for('update_status', prescription_id=prescription.id) }}" method="POST">
+                                                        <div class="mb-3">
+                                                            <label for="status" class="form-label">Update Status</label>
+                                                            <select class="form-select" id="status" name="status" required>
+                                                                <option value="">Select status...</option>
+                                                                <option value="Processing">Processing</option>
+                                                                <option value="Ready">Ready for Pickup</option>
+                                                                <option value="Completed">Completed</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="notes" class="form-label">Notes to Patient</label>
+                                                            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                                                        </div>
+                                                        <div class="text-end">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-primary">Update Status</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No verified prescriptions at this time.
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Processing Prescriptions tab content would follow the same pattern -->
+    <div class="tab-pane fade" id="processing" role="tabpanel">
+        <!-- Similar structure as above tabs -->
+    </div>
+    
+    <!-- Ready for Pickup tab content would follow the same pattern -->
+    <div class="tab-pane fade" id="ready" role="tabpanel">
+        <!-- Similar structure as above tabs -->
+    </div>
+    
+    <!-- Completed tab content would follow the same pattern -->
+    <div class="tab-pane fade" id="completed" role="tabpanel">
+        <!-- Similar structure as above tabs -->
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // Initialize all tabs
+    document.addEventListener('DOMContentLoaded', function() {
+        var triggerTabList = [].slice.call(document.querySelectorAll('#myTab button'))
+        triggerTabList.forEach(function(triggerEl) {
+            var tabTrigger = new bootstrap.Tab(triggerEl)
+            triggerEl.addEventListener('click', function(event) {
+                event.preventDefault()
+                tabTrigger.show()
+            })
+        })
+    });
+</script>
+{% endblock %}
+{% endblock %}
